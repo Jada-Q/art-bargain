@@ -340,7 +340,9 @@ export function ListingForm({
           {isPending ? 'Submitting…' : 'Save listing'}
         </Button>
         {result?.ok === true && (
-          <span className="text-sm text-emerald-600">Submitted. (stub — T10 will persist)</span>
+          <span className="text-sm text-emerald-600">
+            Saved as draft. Open My listings to publish.
+          </span>
         )}
         {result?.ok === false && <span className="text-destructive text-sm">{result.error}</span>}
       </div>

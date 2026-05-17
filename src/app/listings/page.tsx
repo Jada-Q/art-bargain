@@ -61,16 +61,16 @@ export default async function MyListingsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                {row.status === 'draft' ? (
-                  <form action={publishListing.bind(null, row.id)}>
-                    <Button size="sm" type="submit">
-                      Publish
-                    </Button>
-                  </form>
-                ) : row.status === 'live' ? (
+                {row.status === 'live' ? (
                   <form action={withdrawListing.bind(null, row.id)}>
                     <Button size="sm" variant="outline" type="submit">
                       Withdraw
+                    </Button>
+                  </form>
+                ) : row.status === 'draft' || row.status === 'withdrawn' ? (
+                  <form action={publishListing.bind(null, row.id)}>
+                    <Button size="sm" type="submit">
+                      {row.status === 'withdrawn' ? 'Re-publish' : 'Publish'}
                     </Button>
                   </form>
                 ) : null}
