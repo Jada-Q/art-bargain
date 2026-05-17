@@ -672,3 +672,55 @@ This spec captures decisions made during the 2026-05-17 brainstorming session. D
 18. TDD: 6 modules, batch 1 (#4-6) → integration → batch 2 (#1-3 + #5-6).
 19. M2 spike parallel with M1.
 20. Insert "demo + human reaction" review gate after M5.
+
+---
+
+## Appendix B — T7 SSE Streaming Spike (2026-05-17)
+
+Test bench: Vercel deployment of `art-bargain` at `https://art-bargain.vercel.app`, project on Jada-Q's personal Vercel account (`jada-qs-projects` scope). Each endpoint streams a forced ~3-4k token Claude Sonnet 4.6 response ("count 1-100 with detailed commentary").
+
+### Configurations tested
+
+| Variant | File | Runtime | maxDuration export |
+|---|---|---|---|
+| node-default | `src/app/api/spike/stream-node/route.ts` | nodejs (default) | (not set) |
+| node60 | `src/app/api/spike/stream-node60/route.ts` | nodejs | `60` |
+| edge | `src/app/api/spike/stream-edge/route.ts` | edge | (not set) |
+
+### Results
+
+| Variant | Outcome | Streamed bytes | Time to last event | Clean `event: done`? |
+|---|---|---|---|---|
+| node-default | full response delivered | 16,021 chars | 77.30s | ✓ |
+| node60 | cut mid-sentence at limit | 12,194 chars | 59.70s | ✗ (no done event) |
+| edge | **failed at deploy time** | n/a | n/a | n/a |
+
+Edge runtime failed deployment with:
+```
+The Edge Function "api/spike/stream-edge" is referencing
+unsupported modules: node:fs, node:path
+```
+The Anthropic SDK 0.96 pulls in Node-only dependencies, so Edge is not viable without a fetch-only re-implementation. Edge variant removed from the codebase.
+
+### Interpretation
+
+The "Vercel 25s streaming ceiling" risk noted in the spec body is **not active on this project**. With default Node runtime, streams sustain at least 77 seconds end-to-end with no truncation. Explicit `maxDuration = 60` is in fact more restrictive than default — likely because it forces a hard stop where the unmodified default tolerates longer-running streams.
+
+Open question: what is the actual upper bound on this project's plan? 77s is a lower bound; the test stopped because Claude completed, not because Vercel cut us off. A follow-up test with `max_tokens` raised to ~8k and a more verbose prompt could establish the ceiling. Cost: ≈ $0.10 per probe.
+
+### Implication for Plan C (dual-agent design)
+
+The 4.5 SSE protocol section anticipated forced per-5-turn request splits to stay under 25s. **This is unnecessary.** A 20-turn negotiation at ~3-4s per turn (~60-80s wall clock) fits inside one Vercel request on the default Node runtime. The dual-agent coordinator can stream A↔B alternation within a single HTTP request; the per-N-turn-reconnect logic in §4.5 can be deferred or removed.
+
+This loosens one of the riskier coupling points in §4.5 (server-side state continuation across reconnects). Recommend updating §4.5 in a follow-up commit once T6/T7 findings are stable.
+
+### Reproduction
+
+```bash
+curl -s --no-buffer "https://art-bargain.vercel.app/api/spike/stream-node" \
+  -o /tmp/spike-node.sse
+curl -s --no-buffer "https://art-bargain.vercel.app/api/spike/stream-node60" \
+  -o /tmp/spike-node60.sse
+tail -3 /tmp/spike-node.sse
+tail -3 /tmp/spike-node60.sse
+```
