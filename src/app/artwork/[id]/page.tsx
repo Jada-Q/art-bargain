@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
+import { startNegotiation } from '@/app/nego/actions';
 
 type Params = Promise<{ id: string }>;
 
@@ -59,14 +61,23 @@ export default async function ArtworkDetailPage({ params }: { params: Params }) 
             <div className="bg-muted/50 mt-4 rounded-md border p-3 text-xs">
               This is your listing — status: <span className="font-medium">{row.status}</span>
             </div>
+          ) : user ? (
+            <div className="mt-4 flex flex-col gap-2">
+              <form action={startNegotiation.bind(null, row.id)}>
+                <Button type="submit" data-test-id="start-nego" className="w-full">
+                  Start negotiation
+                </Button>
+              </form>
+              <p className="text-muted-foreground text-xs">
+                You&apos;ll chat with the seller&apos;s LLM agent. Anchored by comparable sales from
+                our database.
+              </p>
+            </div>
           ) : (
             <div className="mt-4 flex flex-col gap-2">
-              <Button disabled data-test-id="start-nego-disabled" title="Coming in Plan B">
-                Start negotiation
-              </Button>
-              <p className="text-muted-foreground text-xs">
-                Negotiation arrives in Plan B (human-vs-agent first, then agent-vs-agent).
-              </p>
+              <Link href="/login" className={buttonVariants() + ' w-full text-center'}>
+                Log in to negotiate
+              </Link>
             </div>
           )}
         </div>
