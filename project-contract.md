@@ -1,0 +1,22 @@
+# Project Contract — art-bargain UI redesign
+
+- **预算**: ~4 小时 / ¥0 外部花费（已有栈，不新增订阅）
+- **范围（做这些）**:
+  - 参考站 F12 量化（Saatchi Art + OIL by 美術手帖），输出 design token
+  - Design system：字号系统、字间距、间距、配色（B&W + 1 强调）、字体（serif 标题 + sans 正文）、组件令牌
+  - 5 页重做：Home / Browse / Artwork detail / Negotiation Chat / Negotiation Spectator
+  - 加一个最小 nav bar（logo + 3 链接）— 解决 Plan A 留尾
+  - 部署到 prod + 自动截图自审
+- **不做（明确排除）**:
+  - 不改后端逻辑（auth / DB / agent / SSE 协议都不动）
+  - 不重做 dashboard / listings / new listing / login / signup（保留现状）
+  - 不接 i18n（中文/英文混排即可，单语）
+  - 不做动效大改（轻 hover / fade-in 即可）
+  - 不替换 Geist sans（用户说字体可接受）
+- **完工标准**:
+  - 5 页采用统一 design system
+  - prod URL 验证：Home + Browse + Detail + 两态 nego 各自截图无错
+  - nav bar 在 5 页都存在
+  - puppeteer 自动截图通过自审（feedback_ui_auto_screenshot.md）
+- **开工日**: 2026-05-18
+- **死线**: 无（同 session 内尽量完成，未完则交付到当前点）
