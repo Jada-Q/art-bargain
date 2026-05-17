@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { runSellerTurnStream } from '@/lib/agent/coordinator';
 import { supabaseComparableSalesSource } from '@/lib/agent/supabase-source';
+import { validateBuyerOffer } from '@/lib/agent/price-validation';
 import type { SellerPromptInput } from '@/lib/agent/prompt-builder';
 
 type Params = Promise<{ id: string }>;
@@ -75,6 +76,22 @@ export async function POST(request: NextRequest, ctx: { params: Params }) {
   const safeHistory = (history ?? []).map((h) => ({ speaker: h.speaker, message: h.message }));
 
   const nextTurnNo = (history?.length ?? 0) + 1;
+  const isFirstBuyerTurn = nextTurnNo === 1;
+  const buyerOffer = extractOfferPrice(buyer_message);
+
+  // Anti-cheese: validate offer bounds + first-turn ≥ 70% of listed.
+  if (buyerOffer !== null) {
+    try {
+      validateBuyerOffer({
+        offer: buyerOffer,
+        price_start: Number(artwork.price_start),
+        isFirstTurn: isFirstBuyerTurn,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'invalid_offer';
+      return NextResponse.json({ error: 'invalid_offer', message }, { status: 400 });
+    }
+  }
 
   // Writes use the service-role client (turn inserts are server-trusted; RLS
   // intentionally blocks client-side INSERT on negotiation_turns).
@@ -85,7 +102,7 @@ export async function POST(request: NextRequest, ctx: { params: Params }) {
     turn_no: nextTurnNo,
     speaker: 'buyer_human',
     message: buyer_message,
-    offer_price: extractOfferPrice(buyer_message),
+    offer_price: buyerOffer,
   });
   if (insertBuyerErr) {
     return NextResponse.json({ error: insertBuyerErr.message }, { status: 500 });

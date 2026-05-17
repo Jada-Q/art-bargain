@@ -5,24 +5,25 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 
-export async function startNegotiation(artworkId: string) {
+export async function startNegotiation(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  const artworkId = String(formData.get('artwork_id') ?? '');
+  const mode = String(formData.get('mode') ?? 'human_vs_agent') as
+    | 'human_vs_agent'
+    | 'agent_vs_agent';
+
   const { data: artwork } = await supabase
     .from('artworks')
     .select('id, seller_id, status')
     .eq('id', artworkId)
     .maybeSingle();
-  if (!artwork || artwork.status !== 'live') {
-    redirect(`/artwork/${artworkId}`);
-  }
-  if (artwork.seller_id === user.id) {
-    redirect(`/artwork/${artworkId}`);
-  }
+  if (!artwork || artwork.status !== 'live') redirect(`/artwork/${artworkId}`);
+  if (artwork.seller_id === user.id) redirect(`/artwork/${artworkId}`);
 
   // Resume any in-flight nego from this buyer.
   const { data: existing } = await supabase
@@ -34,12 +35,31 @@ export async function startNegotiation(artworkId: string) {
     .maybeSingle();
   if (existing) redirect(`/nego/${existing.id}`);
 
+  let buyerAgent: Record<string, unknown> | null = null;
+  if (mode === 'agent_vs_agent') {
+    const target = Number(formData.get('target_price'));
+    const max = Number(formData.get('max_price'));
+    const style = String(formData.get('style') ?? 'firm');
+    const urgency = Number(formData.get('urgency') ?? 3);
+
+    if (!Number.isFinite(target) || target <= 0)
+      redirect(`/artwork/${artworkId}?error=invalid_target`);
+    if (!Number.isFinite(max) || max < target) redirect(`/artwork/${artworkId}?error=invalid_max`);
+    if (!['firm', 'friendly', 'scholarly'].includes(style))
+      redirect(`/artwork/${artworkId}?error=invalid_style`);
+    if (!Number.isFinite(urgency) || urgency < 1 || urgency > 5)
+      redirect(`/artwork/${artworkId}?error=invalid_urgency`);
+
+    buyerAgent = { target_price: target, max_price: max, style, urgency };
+  }
+
   const { data: nego, error } = await supabase
     .from('negotiations')
     .insert({
       artwork_id: artworkId,
       buyer_id: user.id,
-      mode: 'human_vs_agent',
+      mode,
+      buyer_agent: buyerAgent as never,
       status: 'active',
     })
     .select('id')

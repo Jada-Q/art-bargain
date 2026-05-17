@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { NegotiationChat, type TurnSnapshot } from '@/components/negotiation-chat';
+import { SpectatorView } from '@/components/spectator-view';
 import { createClient } from '@/lib/supabase/server';
 
 type Params = Promise<{ id: string }>;
@@ -71,7 +72,16 @@ export default async function NegotiationPage({ params }: { params: Params }) {
           </div>
         </aside>
 
-        <NegotiationChat negotiationId={id} initialTurns={turns} initialStatus={nego.status} />
+        {nego.mode === 'agent_vs_agent' ? (
+          <SpectatorView
+            negotiationId={id}
+            initialTurns={turns}
+            initialStatus={nego.status}
+            priceStart={Number(artwork.price_start)}
+          />
+        ) : (
+          <NegotiationChat negotiationId={id} initialTurns={turns} initialStatus={nego.status} />
+        )}
       </div>
     </main>
   );

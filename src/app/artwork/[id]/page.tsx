@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { DispatchModal } from '@/components/dispatch-modal';
 import { createClient } from '@/lib/supabase/server';
-import { startNegotiation } from '@/app/nego/actions';
 
 type Params = Promise<{ id: string }>;
 
@@ -63,14 +63,9 @@ export default async function ArtworkDetailPage({ params }: { params: Params }) 
             </div>
           ) : user ? (
             <div className="mt-4 flex flex-col gap-2">
-              <form action={startNegotiation.bind(null, row.id)}>
-                <Button type="submit" data-test-id="start-nego" className="w-full">
-                  Start negotiation
-                </Button>
-              </form>
+              <DispatchModal artworkId={row.id} priceStart={Number(row.price_start)} />
               <p className="text-muted-foreground text-xs">
-                You&apos;ll chat with the seller&apos;s LLM agent. Anchored by comparable sales from
-                our database.
+                Chat yourself or dispatch an agent. Anchored by comparable-sales RAG.
               </p>
             </div>
           ) : (
