@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
@@ -31,10 +32,18 @@ export default async function DashboardPage() {
         <p className="text-muted-foreground mt-2 text-xs">User id: {user.id}</p>
       </section>
 
+      <section className="mt-8">
+        <Link
+          href="/listings/new"
+          className="inline-flex h-9 items-center rounded-md border px-3 text-sm"
+        >
+          New listing (T8 stub)
+        </Link>
+      </section>
+
       <section className="text-muted-foreground mt-8 text-sm">
         <p>Coming up in Plan A:</p>
         <ul className="mt-2 list-disc pl-5">
-          <li>T8 — list artwork form</li>
           <li>T9 — image upload</li>
           <li>T10 — publish / withdraw actions</li>
           <li>T11/T12 — browse and detail pages</li>
