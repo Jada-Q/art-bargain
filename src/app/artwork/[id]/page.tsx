@@ -1,7 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import { DispatchModal } from '@/components/dispatch-modal';
 import { createClient } from '@/lib/supabase/server';
 
@@ -23,57 +21,73 @@ export default async function ArtworkDetailPage({ params }: { params: Params }) 
 
   if (error || !row) notFound();
 
-  // RLS already filters non-live unless you're the owner, but double-check for safety.
   const isOwner = user?.id === row.seller_id;
   if (row.status !== 'live' && !isOwner) notFound();
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-        <div>
-          {row.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={row.image_url}
-              alt={row.title}
-              className="aspect-square w-full rounded-lg object-cover"
-            />
-          ) : (
-            <div className="bg-muted aspect-square w-full rounded-lg" />
-          )}
-        </div>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">{row.title}</h1>
-            <Badge variant="secondary">{row.category}</Badge>
+    <main className="mx-auto max-w-6xl px-6 py-16">
+      <div className="grid grid-cols-1 gap-12 md:grid-cols-12">
+        <figure className="md:col-span-7">
+          <div className="bg-muted/40 aspect-square w-full overflow-hidden">
+            {row.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={row.image_url} alt={row.title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="bg-muted h-full w-full" />
+            )}
           </div>
+          <figcaption className="text-muted-foreground tracking-label mt-4 text-[10px] uppercase">
+            № {row.id.slice(0, 8)} · {row.category}
+          </figcaption>
+        </figure>
 
-          <p className="text-3xl font-medium">${Number(row.price_start).toFixed(0)}</p>
+        <div className="flex flex-col md:col-span-5">
+          <p className="text-muted-foreground tracking-label text-[10px] uppercase">On view</p>
+          <h1 className="font-display mt-4 text-4xl leading-tight text-balance">{row.title}</h1>
+
+          <p className="font-display mt-6 text-3xl">${Number(row.price_start).toFixed(0)}</p>
+          <p className="text-muted-foreground tracking-label mt-1 text-[10px] uppercase">
+            Listed start price
+          </p>
 
           {row.description ? (
-            <p className="text-muted-foreground text-sm whitespace-pre-wrap">{row.description}</p>
+            <p className="text-muted-foreground mt-8 text-[13px] leading-relaxed whitespace-pre-wrap">
+              {row.description}
+            </p>
           ) : null}
 
           <CategoryMeta category={row.category} meta={row.category_meta} />
 
+          <hr className="border-border my-8" />
+
           {isOwner ? (
-            <div className="bg-muted/50 mt-4 rounded-md border p-3 text-xs">
-              This is your listing — status: <span className="font-medium">{row.status}</span>
+            <div className="border-border bg-muted/40 border p-4 text-[12px]">
+              <p className="tracking-label text-muted-foreground uppercase">This is your listing</p>
+              <p className="mt-2">
+                Status: <span className="font-medium">{row.status}</span>
+              </p>
+              <Link
+                href="/listings"
+                className="text-foreground mt-3 inline-block text-[12px] underline underline-offset-[6px]"
+              >
+                Manage in your works →
+              </Link>
             </div>
           ) : user ? (
-            <div className="mt-4 flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               <DispatchModal artworkId={row.id} priceStart={Number(row.price_start)} />
-              <p className="text-muted-foreground text-xs">
-                Chat yourself or dispatch an agent. Anchored by comparable-sales RAG.
+              <p className="text-muted-foreground text-[11px] leading-relaxed">
+                Chat the seller&apos;s agent yourself, or dispatch a buyer agent and watch them
+                negotiate. Anchored by comparable sales from our database.
               </p>
             </div>
           ) : (
-            <div className="mt-4 flex flex-col gap-2">
-              <Link href="/login" className={buttonVariants() + ' w-full text-center'}>
-                Log in to negotiate
-              </Link>
-            </div>
+            <Link
+              href="/login"
+              className="bg-foreground tracking-label hover:bg-foreground/85 text-background inline-flex h-11 items-center justify-center px-6 text-[12px] uppercase transition-colors"
+            >
+              Sign in to negotiate
+            </Link>
           )}
         </div>
       </div>
@@ -103,11 +117,11 @@ function CategoryMeta({ category, meta }: { category: string; meta: unknown }) {
 
   if (rows.length === 0) return null;
   return (
-    <dl className="text-muted-foreground mt-2 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 text-xs">
+    <dl className="mt-8 grid grid-cols-[max-content_1fr] gap-x-8 gap-y-2 text-[12px]">
       {rows.map(([k, v]) => (
         <div key={k} className="contents">
-          <dt>{k}</dt>
-          <dd className="text-foreground">{v}</dd>
+          <dt className="text-muted-foreground tracking-label uppercase">{k}</dt>
+          <dd>{v}</dd>
         </div>
       ))}
     </dl>

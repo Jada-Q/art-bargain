@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import type { TurnSnapshot } from './negotiation-chat';
 
 export function SpectatorView({
@@ -122,13 +121,18 @@ export function SpectatorView({
 
   return (
     <div className="flex flex-col gap-4">
-      <header className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Spectator</h2>
-        <div className="flex items-center gap-3">
-          <Badge variant={status === 'active' ? 'default' : 'secondary'}>{status}</Badge>
+      <header className="border-border flex items-baseline justify-between border-b pb-3">
+        <div>
+          <p className="text-muted-foreground tracking-label text-[10px] uppercase">
+            Spectator · agent vs agent
+          </p>
+          <h2 className="font-display mt-1 text-xl">Two agents, one offer</h2>
+        </div>
+        <div className="text-muted-foreground tracking-label flex items-baseline gap-3 text-[10px] uppercase">
+          <span className={status === 'active' ? 'text-foreground' : ''}>{status}</span>
           {turns.length > 0 ? (
-            <span className="text-muted-foreground text-xs">
-              {turns.length} turn{turns.length !== 1 ? 's' : ''}
+            <span>
+              · {turns.length} turn{turns.length !== 1 ? 's' : ''}
             </span>
           ) : null}
         </div>
@@ -180,12 +184,17 @@ export function SpectatorView({
           {running ? 'Running…' : turns.length === 0 ? '▶ Start agent-vs-agent' : '▶ Continue'}
         </Button>
       ) : (
-        <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-          {status === 'accepted'
-            ? 'Negotiation accepted. Order pending payment.'
-            : status === 'stalled'
-              ? 'Negotiation stalled at 20-turn limit.'
-              : `Negotiation ${status}.`}
+        <div className="border-gallery-accent bg-gallery-accent/5 text-foreground border-l-2 p-4 text-[13px] leading-relaxed">
+          <p className="text-gallery-accent tracking-label text-[10px] uppercase">
+            {status === 'accepted' ? 'Accepted' : status === 'stalled' ? 'Stalled' : status}
+          </p>
+          <p className="mt-2">
+            {status === 'accepted'
+              ? 'Negotiation closed. Order pending payment.'
+              : status === 'stalled'
+                ? 'Reached the 20-turn limit without agreement.'
+                : `Negotiation ${status}.`}
+          </p>
         </div>
       )}
     </div>
@@ -208,7 +217,7 @@ function Column({
   scrollRef: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
-    <div className="flex h-[60svh] flex-col rounded-lg border">
+    <div className="border-border bg-background flex h-[60svh] flex-col border">
       <div className="border-b px-3 py-2 text-xs font-medium tracking-wide uppercase">
         {title}
         {isActive ? <span className="ml-2 animate-pulse text-emerald-600">●</span> : null}
@@ -245,7 +254,7 @@ function Bubble({
   return (
     <div
       className={
-        'rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ' +
+        'rounded-sm px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ' +
         (tone === 'buyer' ? 'bg-foreground text-background' : 'bg-muted text-foreground')
       }
     >
@@ -274,7 +283,7 @@ function ProgressBar({
   const pct = (v: number) => `${Math.min(100, Math.max(0, (v / max) * 100))}%`;
 
   return (
-    <div className="rounded-lg border p-4">
+    <div className="border-border border p-5">
       <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs">
         <span>Spread visualization</span>
         {spread !== null ? <span>gap: ${spread}</span> : <span>—</span>}

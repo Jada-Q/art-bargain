@@ -128,15 +128,15 @@ export function NegotiationChat({
   }
 
   return (
-    <div className="flex h-[calc(100svh-12rem)] flex-col gap-3">
+    <div className="flex h-[calc(100svh-9rem)] flex-col gap-4">
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto rounded-lg border p-4"
+        className="border-border bg-background flex-1 overflow-y-auto border p-6"
         aria-live="polite"
       >
         {turns.length === 0 && !streamingSellerText ? (
-          <p className="text-muted-foreground text-sm">
-            Say something to start. Try &quot;Can you do $150?&quot;
+          <p className="text-muted-foreground text-[13px] leading-relaxed italic">
+            Open the floor. Try “Can you do $150?” or ask about the print run.
           </p>
         ) : null}
         <ul className="flex flex-col gap-2">
@@ -165,8 +165,9 @@ export function NegotiationChat({
       ) : null}
 
       {status === 'accepted' ? (
-        <div className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
-          Negotiation accepted. Order is pending payment (Plan D wires Stripe checkout).
+        <div className="border-gallery-accent bg-gallery-accent/5 text-foreground border-l-2 p-4 text-[13px] leading-relaxed">
+          <p className="text-gallery-accent tracking-label text-[10px] uppercase">Accepted</p>
+          <p className="mt-2">Negotiation closed. Order pending payment.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -221,7 +222,7 @@ function Bubble({
     <div className={isBuyer ? 'flex justify-end' : 'flex justify-start'}>
       <div
         className={
-          'max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap ' +
+          'max-w-[80%] rounded-sm px-3.5 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ' +
           (isBuyer ? 'bg-foreground text-background' : 'bg-muted text-foreground')
         }
       >

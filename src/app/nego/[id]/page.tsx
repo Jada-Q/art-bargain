@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { NegotiationChat, type TurnSnapshot } from '@/components/negotiation-chat';
 import { SpectatorView } from '@/components/spectator-view';
 import { createClient } from '@/lib/supabase/server';
@@ -46,42 +45,47 @@ export default async function NegotiationPage({ params }: { params: Params }) {
   }));
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-8">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr]">
-        <aside className="flex flex-col gap-3">
-          <Link href={`/artwork/${artwork.id}`} className="block overflow-hidden rounded-lg border">
+    <main className="mx-auto max-w-6xl px-6 py-10">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-[280px_1fr]">
+        <aside className="flex flex-col gap-4">
+          <Link
+            href={`/artwork/${artwork.id}`}
+            className="bg-muted/40 block aspect-square overflow-hidden"
+          >
             {artwork.thumb_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={artwork.thumb_url} alt="" className="aspect-square w-full object-cover" />
-            ) : (
-              <div className="bg-muted aspect-square w-full" />
-            )}
+              <img src={artwork.thumb_url} alt="" className="h-full w-full object-cover" />
+            ) : null}
           </Link>
           <div>
-            <h1 className="text-base font-medium">{artwork.title}</h1>
-            <p className="text-muted-foreground mt-1 text-xs">
+            <p className="text-muted-foreground tracking-label text-[10px] uppercase">
+              {artwork.category}
+            </p>
+            <h1 className="font-display mt-2 text-2xl leading-tight">{artwork.title}</h1>
+            <p className="text-muted-foreground mt-3 text-[12px]">
               Listed at{' '}
               <span className="text-foreground">${Number(artwork.price_start).toFixed(0)}</span>
             </p>
-            <div className="mt-2 flex gap-2 text-xs">
-              <Badge variant="secondary">{artwork.category}</Badge>
-              <Badge variant={nego.status === 'active' ? 'default' : 'secondary'}>
-                {nego.status}
-              </Badge>
-            </div>
+          </div>
+          <div className="text-muted-foreground tracking-label flex gap-3 text-[10px] uppercase">
+            <span>{nego.mode === 'agent_vs_agent' ? 'Spectator mode' : 'Direct chat'}</span>
+            <span>·</span>
+            <span className={nego.status === 'active' ? 'text-foreground' : ''}>{nego.status}</span>
           </div>
         </aside>
 
-        {nego.mode === 'agent_vs_agent' ? (
-          <SpectatorView
-            negotiationId={id}
-            initialTurns={turns}
-            initialStatus={nego.status}
-            priceStart={Number(artwork.price_start)}
-          />
-        ) : (
-          <NegotiationChat negotiationId={id} initialTurns={turns} initialStatus={nego.status} />
-        )}
+        <section>
+          {nego.mode === 'agent_vs_agent' ? (
+            <SpectatorView
+              negotiationId={id}
+              initialTurns={turns}
+              initialStatus={nego.status}
+              priceStart={Number(artwork.price_start)}
+            />
+          ) : (
+            <NegotiationChat negotiationId={id} initialTurns={turns} initialStatus={nego.status} />
+          )}
+        </section>
       </div>
     </main>
   );
