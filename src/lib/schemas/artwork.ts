@@ -43,6 +43,8 @@ const basePriceFields = {
   description: z.string().max(2000),
   price_start: z.number().nonnegative().max(PRICE_MAX),
   price_floor: z.number().nonnegative().max(PRICE_MAX),
+  image_url: z.string().url().optional().or(z.literal('')),
+  thumb_url: z.string().url().optional().or(z.literal('')),
   seller_agent: sellerAgentSchema,
 };
 

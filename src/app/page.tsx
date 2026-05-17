@@ -17,13 +17,16 @@ export default async function Home() {
       </p>
 
       <div className="mt-8 flex gap-3">
+        <Link href="/browse" className={buttonVariants()}>
+          Browse
+        </Link>
         {user ? (
-          <Link href="/dashboard" className={buttonVariants()}>
-            Go to dashboard
+          <Link href="/dashboard" className={buttonVariants({ variant: 'outline' })}>
+            Dashboard
           </Link>
         ) : (
           <>
-            <Link href="/signup" className={buttonVariants()}>
+            <Link href="/signup" className={buttonVariants({ variant: 'outline' })}>
               Sign up
             </Link>
             <Link href="/login" className={buttonVariants({ variant: 'outline' })}>

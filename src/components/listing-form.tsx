@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ImageUploadField } from '@/components/image-upload-field';
 import {
   artworkFormSchema,
   AGENT_STYLES,
@@ -24,13 +25,16 @@ type SubmitResult = { ok: true; preview: ArtworkFormInput } | { ok: false; error
 
 export function ListingForm({
   action,
+  userId,
 }: {
   action: (data: ArtworkFormInput) => Promise<SubmitResult>;
+  userId: string;
 }) {
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors, isValid },
     reset,
   } = useForm<ArtworkFormInput>({
@@ -47,6 +51,8 @@ export function ListingForm({
       category: 'poster',
       price_start: 0,
       price_floor: 0,
+      image_url: '',
+      thumb_url: '',
       category_meta: {
         size: 'A3',
         print_run: 100,
@@ -78,6 +84,20 @@ export function ListingForm({
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      {/* Image upload */}
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">Image</h2>
+        <ImageUploadField
+          userId={userId}
+          onUploaded={({ image_url, thumb_url }) => {
+            setValue('image_url', image_url, { shouldValidate: true });
+            setValue('thumb_url', thumb_url, { shouldValidate: true });
+          }}
+        />
+        <input type="hidden" {...register('image_url')} />
+        <input type="hidden" {...register('thumb_url')} />
+      </section>
+
       {/* Title + description */}
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Listing</h2>
