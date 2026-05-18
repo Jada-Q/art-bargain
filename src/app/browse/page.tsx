@@ -3,7 +3,30 @@ import { createClient } from '@/lib/supabase/server';
 
 const CATEGORIES = ['poster', 'painting', 'photography'] as const;
 
+const JUST_LISTED_COUNT = 3;
+const ALL_WORKS_LIMIT = 24;
+const ARCHIVE_LIMIT = 12;
+
 type SearchParams = { [key: string]: string | string[] | undefined };
+
+type LiveRow = {
+  id: string;
+  title: string;
+  category: 'poster' | 'painting' | 'photography';
+  price_start: number;
+  thumb_url: string | null;
+  image_url: string | null;
+  created_at: string;
+};
+
+type ArchiveRow = {
+  id: string;
+  category: 'poster' | 'painting' | 'photography';
+  sold_price: number;
+  sold_at: string;
+  notes: string;
+  meta: Record<string, unknown>;
+};
 
 export default async function BrowsePage({
   searchParams,
@@ -17,20 +40,44 @@ export default async function BrowsePage({
     : null;
 
   const supabase = await createClient();
-  let query = supabase
+
+  let liveQuery = supabase
     .from('artworks')
     .select('id, title, category, price_start, thumb_url, image_url, created_at')
     .eq('status', 'live')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(ALL_WORKS_LIMIT);
+  if (activeCategory) liveQuery = liveQuery.eq('category', activeCategory);
+  const { data: liveRows, error: liveErr } = await liveQuery;
 
-  if (activeCategory) {
-    query = query.eq('category', activeCategory);
-  }
+  let archiveQuery = supabase
+    .from('comparable_sales')
+    .select('id, category, sold_price, sold_at, notes, meta')
+    .order('sold_at', { ascending: false })
+    .limit(ARCHIVE_LIMIT);
+  if (activeCategory) archiveQuery = archiveQuery.eq('category', activeCategory);
+  const { data: archiveRows } = await archiveQuery;
 
-  const { data: rows, error } = await query;
+  const { count: totalLive } = await supabase
+    .from('artworks')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'live')
+    .then((r) => r);
+
+  const { count: totalArchive } = await supabase
+    .from('comparable_sales')
+    .select('id', { count: 'exact', head: true })
+    .then((r) => r);
+
+  const live = (liveRows ?? []) as LiveRow[];
+  const archive = (archiveRows ?? []) as ArchiveRow[];
+
+  const justListed = live.slice(0, JUST_LISTED_COUNT);
+  const rest = live.slice(JUST_LISTED_COUNT);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-16">
+    <main className="mx-auto max-w-6xl px-6 py-14">
+      {/* Header */}
       <header className="border-border border-b pb-10">
         <p className="text-muted-foreground tracking-label text-[10px] uppercase">
           {activeCategory ? `Category — ${activeCategory}` : 'Open call'}
@@ -38,11 +85,12 @@ export default async function BrowsePage({
         <div className="mt-4 flex flex-wrap items-baseline justify-between gap-6">
           <h1 className="font-display text-5xl tracking-tight">Browse</h1>
           <p className="text-muted-foreground max-w-xs text-[13px] leading-relaxed">
-            Every listing carries an agent. Open one to start a negotiation — chat directly or
-            dispatch your own.
+            Every listing carries an agent. Open one to negotiate — chat directly or dispatch your
+            own.
           </p>
         </div>
 
+        {/* Filter pills */}
         <nav className="mt-10 flex flex-wrap gap-1 text-[11px]">
           <FilterLink href="/browse" active={!activeCategory} label="All" />
           {CATEGORIES.map((c) => (
@@ -56,36 +104,133 @@ export default async function BrowsePage({
         </nav>
       </header>
 
-      {error ? (
+      {liveErr ? (
         <p className="text-destructive mt-8 text-sm" role="alert">
-          {error.message}
+          {liveErr.message}
         </p>
       ) : null}
 
-      {!rows || rows.length === 0 ? (
-        <p className="text-muted-foreground tracking-label mt-24 text-center text-[12px] uppercase">
-          Nothing on view yet.
-        </p>
-      ) : (
-        <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((row, idx) => (
-            <ArtworkCard
-              key={row.id}
-              index={idx + 1}
-              id={row.id}
-              title={row.title}
-              category={row.category}
-              priceStart={Number(row.price_start)}
-              thumbUrl={row.thumb_url}
-            />
-          ))}
-        </div>
-      )}
+      {/* JUST LISTED — feature row */}
+      <section className="mt-16">
+        <SectionHeader
+          eyebrow="On view"
+          title="Just listed"
+          right={
+            <span className="text-muted-foreground tracking-label text-[10px] uppercase">
+              {totalLive ?? 0} {totalLive === 1 ? 'work' : 'works'}
+            </span>
+          }
+        />
+        {justListed.length === 0 ? (
+          <EmptyHero filteredBy={activeCategory} />
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {justListed.map((row, idx) => (
+              <FeatureCard
+                key={row.id}
+                index={idx + 1}
+                id={row.id}
+                title={row.title}
+                category={row.category}
+                priceStart={Number(row.price_start)}
+                thumbUrl={row.thumb_url}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ALL WORKS — uniform 3-col grid */}
+      {rest.length > 0 ? (
+        <section className="mt-20">
+          <SectionHeader eyebrow="Catalogue" title="All works" />
+          <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3 lg:grid-cols-4">
+            {rest.map((row, idx) => (
+              <GridCard
+                key={row.id}
+                index={JUST_LISTED_COUNT + idx + 1}
+                id={row.id}
+                title={row.title}
+                category={row.category}
+                priceStart={Number(row.price_start)}
+                thumbUrl={row.thumb_url}
+              />
+            ))}
+          </div>
+          {(totalLive ?? 0) > ALL_WORKS_LIMIT ? (
+            <div className="mt-12 flex justify-center">
+              <p className="text-muted-foreground tracking-label text-[11px] uppercase">
+                Showing {ALL_WORKS_LIMIT} of {totalLive}. Pagination arrives in Plan D.
+              </p>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
+
+      {/* THE ARCHIVE — comparable_sales (no image; typographic) */}
+      {archive.length > 0 ? (
+        <section className="border-border mt-24 border-t pt-16">
+          <SectionHeader
+            eyebrow="Data ⌁ anchors"
+            title="The archive"
+            right={
+              <span className="text-muted-foreground tracking-label text-[10px] uppercase">
+                {totalArchive ?? 0} comparable sales
+              </span>
+            }
+            subtitle="What our agents reference when negotiating. Recent sold prices used as evidence in every reply."
+          />
+          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {archive.map((row) => (
+              <ArchiveCard
+                key={row.id}
+                category={row.category}
+                soldPrice={Number(row.sold_price)}
+                soldAt={row.sold_at}
+                notes={row.notes}
+                meta={row.meta}
+              />
+            ))}
+          </div>
+          {(totalArchive ?? 0) > ARCHIVE_LIMIT ? (
+            <p className="text-muted-foreground tracking-label mt-10 text-center text-[10px] uppercase">
+              Showing {ARCHIVE_LIMIT} of {totalArchive} archive entries
+            </p>
+          ) : null}
+        </section>
+      ) : null}
     </main>
   );
 }
 
-function ArtworkCard({
+function SectionHeader({
+  eyebrow,
+  title,
+  subtitle,
+  right,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  right?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p className="text-gallery-accent tracking-label text-[10px] uppercase">{eyebrow}</p>
+        <h2 className="font-display mt-2 text-3xl tracking-tight">{title}</h2>
+        {subtitle ? (
+          <p className="text-muted-foreground mt-3 max-w-md text-[13px] leading-relaxed">
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+      {right}
+    </div>
+  );
+}
+
+function FeatureCard({
   index,
   id,
   title,
@@ -121,10 +266,123 @@ function ArtworkCard({
         </p>
         <p className="text-[12px]">${priceStart.toFixed(0)}</p>
       </div>
-      <h3 className="font-display group-hover:text-gallery-accent mt-2 text-xl transition-colors">
+      <h3 className="font-display group-hover:text-gallery-accent mt-2 text-xl leading-snug transition-colors">
         {title || 'Untitled'}
       </h3>
     </Link>
+  );
+}
+
+function GridCard({
+  index,
+  id,
+  title,
+  category,
+  priceStart,
+  thumbUrl,
+}: {
+  index: number;
+  id: string;
+  title: string;
+  category: string;
+  priceStart: number;
+  thumbUrl: string | null;
+}) {
+  const idx = String(index).padStart(3, '0');
+  return (
+    <Link href={`/artwork/${id}`} className="group block">
+      <div className="bg-muted/40 aspect-[4/5] w-full overflow-hidden">
+        {thumbUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbUrl}
+            alt=""
+            className="h-full w-full object-cover transition-opacity duration-500 group-hover:opacity-90"
+          />
+        ) : (
+          <div className="bg-muted h-full w-full" />
+        )}
+      </div>
+      <div className="mt-3 flex items-baseline justify-between">
+        <p className="text-muted-foreground tracking-label text-[10px] uppercase">№ {idx}</p>
+        <p className="text-[11px]">${priceStart.toFixed(0)}</p>
+      </div>
+      <h3 className="group-hover:text-gallery-accent font-display mt-1 text-base leading-snug transition-colors">
+        {title || 'Untitled'}
+      </h3>
+      <p className="text-muted-foreground tracking-label mt-1 text-[10px] uppercase">{category}</p>
+    </Link>
+  );
+}
+
+function ArchiveCard({
+  category,
+  soldPrice,
+  soldAt,
+  notes,
+  meta,
+}: {
+  category: string;
+  soldPrice: number;
+  soldAt: string;
+  notes: string;
+  meta: Record<string, unknown>;
+}) {
+  const metaLine = formatMetaLine(category, meta);
+  return (
+    <article className="border-border bg-background border p-6">
+      <header className="flex items-baseline justify-between gap-3">
+        <p className="text-muted-foreground tracking-label text-[10px] uppercase">
+          {category} · {soldAt}
+        </p>
+        <p className="font-display text-2xl">${soldPrice.toFixed(0)}</p>
+      </header>
+      {metaLine ? (
+        <p className="text-foreground mt-5 text-[13px] leading-snug">{metaLine}</p>
+      ) : null}
+      <p className="text-muted-foreground mt-3 text-[12px] leading-relaxed italic">{notes}</p>
+    </article>
+  );
+}
+
+function formatMetaLine(category: string, meta: Record<string, unknown>): string {
+  if (category === 'poster') {
+    const size = meta.size as string | undefined;
+    const printRun = meta.print_run as number | undefined;
+    const signed = meta.signed as boolean | undefined;
+    return [size, printRun ? `edition /${printRun}` : null, signed ? 'signed' : null]
+      .filter(Boolean)
+      .join(' · ');
+  }
+  if (category === 'painting') {
+    const medium = (meta.medium as string | undefined)?.replace('_', ' ');
+    const w = meta.width_cm as number | undefined;
+    const h = meta.height_cm as number | undefined;
+    return [medium, w && h ? `${w} × ${h} cm` : null].filter(Boolean).join(' · ');
+  }
+  if (category === 'photography') {
+    const size = meta.print_size as string | undefined;
+    const paper = (meta.paper as string | undefined)?.replace('_', ' ');
+    const ed = meta.edition_size as number | null | undefined;
+    return [size, paper, ed ? `edition /${ed}` : ed === null ? 'open edition' : null]
+      .filter(Boolean)
+      .join(' · ');
+  }
+  return '';
+}
+
+function EmptyHero({ filteredBy }: { filteredBy: string | null }) {
+  return (
+    <div className="border-border bg-muted/30 mt-8 flex flex-col items-center justify-center border px-6 py-24 text-center">
+      <p className="text-muted-foreground tracking-label text-[11px] uppercase">
+        No live works {filteredBy ? `in ${filteredBy}` : 'yet'}
+      </p>
+      <p className="text-muted-foreground mt-4 max-w-sm text-[13px] leading-relaxed">
+        {filteredBy
+          ? 'Try another category — or scroll down to see the archive of recent comparable sales.'
+          : 'New listings appear here. Scroll down to see the archive of comparable sales our agents reference.'}
+      </p>
+    </div>
   );
 }
 
