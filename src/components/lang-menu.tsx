@@ -44,11 +44,8 @@ export function LangMenu({ current }: { current: Locale }) {
       {open ? (
         <div
           role="menu"
-          className="border-border bg-background absolute top-full right-0 z-50 mt-2 min-w-[180px] border py-2 shadow-sm"
+          className="border-border bg-background absolute top-full right-0 z-50 mt-2 min-w-[112px] border py-1"
         >
-          <p className="text-muted-foreground tracking-label px-4 py-2 text-[9px] uppercase">
-            Language
-          </p>
           {LOCALES.map((loc) => (
             <form key={loc} action={setLocaleAction}>
               <input type="hidden" name="locale" value={loc} />
@@ -56,17 +53,22 @@ export function LangMenu({ current }: { current: Locale }) {
                 type="submit"
                 role="menuitem"
                 onClick={() => setOpen(false)}
+                aria-current={current === loc ? 'true' : undefined}
                 className={
-                  'hover:bg-muted/60 flex w-full items-center justify-between px-4 py-2 text-left text-[12px] transition-colors ' +
+                  'hover:bg-muted/60 flex w-full items-center gap-1.5 px-3 py-1 text-left text-[11px] transition-colors ' +
                   (current === loc ? 'text-foreground' : 'text-muted-foreground')
                 }
               >
+                <span
+                  aria-hidden="true"
+                  className={
+                    'text-gallery-accent inline-block w-1.5 text-center leading-none ' +
+                    (current === loc ? 'opacity-100' : 'opacity-0')
+                  }
+                >
+                  ·
+                </span>
                 <span>{LOCALE_LABELS[loc]}</span>
-                {current === loc ? (
-                  <span aria-hidden="true" className="text-gallery-accent">
-                    ·
-                  </span>
-                ) : null}
               </button>
             </form>
           ))}
