@@ -5,9 +5,9 @@ export const LOCALES = ['en', 'zh', 'ja'] as const;
 export type Locale = (typeof LOCALES)[number];
 
 export const LOCALE_LABELS: Record<Locale, string> = {
-  en: 'English',
-  zh: '中文',
-  ja: '日本語',
+  en: 'EN',
+  zh: 'CN',
+  ja: 'JP',
 };
 
 export const DEFAULT_LOCALE: Locale = 'en';

@@ -44,7 +44,7 @@ export function LangMenu({ current }: { current: Locale }) {
       {open ? (
         <div
           role="menu"
-          className="border-border bg-background absolute top-full right-0 z-50 mt-2 min-w-[112px] border py-1"
+          className="border-border bg-background absolute top-full right-0 z-50 mt-2 min-w-[88px] border py-1"
         >
           {LOCALES.map((loc) => (
             <form key={loc} action={setLocaleAction}>
@@ -55,7 +55,7 @@ export function LangMenu({ current }: { current: Locale }) {
                 onClick={() => setOpen(false)}
                 aria-current={current === loc ? 'true' : undefined}
                 className={
-                  'hover:bg-muted/60 flex w-full items-center gap-1.5 px-3 py-1 text-left text-[11px] transition-colors ' +
+                  'hover:bg-muted/60 tracking-label flex w-full items-center gap-2 px-3 py-1 text-left text-[10px] uppercase transition-colors ' +
                   (current === loc ? 'text-foreground' : 'text-muted-foreground')
                 }
               >
