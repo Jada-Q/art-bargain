@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getDict } from '@/lib/i18n/server';
 
 const CATEGORIES = ['poster', 'painting', 'photography'] as const;
 
@@ -75,24 +76,23 @@ export default async function BrowsePage({
   const justListed = live.slice(0, JUST_LISTED_COUNT);
   const rest = live.slice(JUST_LISTED_COUNT);
 
+  const t = (await getDict()).browse;
+
   return (
     <main className="mx-auto max-w-6xl px-6 py-14">
       {/* Header */}
       <header className="border-border border-b pb-10">
         <p className="text-muted-foreground tracking-label text-[10px] uppercase">
-          {activeCategory ? `Category — ${activeCategory}` : 'Open call'}
+          {activeCategory ? t.eyebrow_filtered(activeCategory) : t.eyebrow_open}
         </p>
         <div className="mt-4 flex flex-wrap items-baseline justify-between gap-6">
-          <h1 className="font-display text-5xl tracking-tight">Browse</h1>
-          <p className="text-muted-foreground max-w-xs text-[13px] leading-relaxed">
-            Every listing carries an agent. Open one to negotiate — chat directly or dispatch your
-            own.
-          </p>
+          <h1 className="font-display text-5xl tracking-tight">{t.title}</h1>
+          <p className="text-muted-foreground max-w-xs text-[13px] leading-relaxed">{t.intro}</p>
         </div>
 
         {/* Filter pills */}
         <nav className="mt-10 flex flex-wrap gap-1 text-[11px]">
-          <FilterLink href="/browse" active={!activeCategory} label="All" />
+          <FilterLink href="/browse" active={!activeCategory} label={t.filter_all} />
           {CATEGORIES.map((c) => (
             <FilterLink
               key={c}
@@ -113,16 +113,19 @@ export default async function BrowsePage({
       {/* JUST LISTED — feature row */}
       <section className="mt-16">
         <SectionHeader
-          eyebrow="On view"
-          title="Just listed"
+          eyebrow={t.just_listed_eyebrow}
+          title={t.just_listed_title}
           right={
             <span className="text-muted-foreground tracking-label text-[10px] uppercase">
-              {totalLive ?? 0} {totalLive === 1 ? 'work' : 'works'}
+              {t.just_listed_count(totalLive ?? 0)}
             </span>
           }
         />
         {justListed.length === 0 ? (
-          <EmptyHero filteredBy={activeCategory} />
+          <EmptyHero
+            labelFiltered={activeCategory ? t.empty_filtered(activeCategory) : t.empty_all}
+            bodyFiltered={activeCategory ? t.empty_body_filtered : t.empty_body_all}
+          />
         ) : (
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {justListed.map((row, idx) => (
@@ -143,7 +146,7 @@ export default async function BrowsePage({
       {/* ALL WORKS — uniform 3-col grid */}
       {rest.length > 0 ? (
         <section className="mt-20">
-          <SectionHeader eyebrow="Catalogue" title="All works" />
+          <SectionHeader eyebrow={t.all_works_eyebrow} title={t.all_works_title} />
           <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-14 sm:grid-cols-3 lg:grid-cols-4">
             {rest.map((row, idx) => (
               <GridCard
@@ -171,14 +174,14 @@ export default async function BrowsePage({
       {archive.length > 0 ? (
         <section className="border-border mt-24 border-t pt-16">
           <SectionHeader
-            eyebrow="Data ⌁ anchors"
-            title="The archive"
+            eyebrow={t.archive_eyebrow}
+            title={t.archive_title}
             right={
               <span className="text-muted-foreground tracking-label text-[10px] uppercase">
-                {totalArchive ?? 0} comparable sales
+                {t.archive_count(totalArchive ?? 0)}
               </span>
             }
-            subtitle="What our agents reference when negotiating. Recent sold prices used as evidence in every reply."
+            subtitle={t.archive_subtitle}
           />
           <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {archive.map((row) => (
@@ -371,16 +374,18 @@ function formatMetaLine(category: string, meta: Record<string, unknown>): string
   return '';
 }
 
-function EmptyHero({ filteredBy }: { filteredBy: string | null }) {
+function EmptyHero({
+  labelFiltered,
+  bodyFiltered,
+}: {
+  labelFiltered: string;
+  bodyFiltered: string;
+}) {
   return (
     <div className="border-border bg-muted/30 mt-8 flex flex-col items-center justify-center border px-6 py-24 text-center">
-      <p className="text-muted-foreground tracking-label text-[11px] uppercase">
-        No live works {filteredBy ? `in ${filteredBy}` : 'yet'}
-      </p>
+      <p className="text-muted-foreground tracking-label text-[11px] uppercase">{labelFiltered}</p>
       <p className="text-muted-foreground mt-4 max-w-sm text-[13px] leading-relaxed">
-        {filteredBy
-          ? 'Try another category — or scroll down to see the archive of recent comparable sales.'
-          : 'New listings appear here. Scroll down to see the archive of comparable sales our agents reference.'}
+        {bodyFiltered}
       </p>
     </div>
   );

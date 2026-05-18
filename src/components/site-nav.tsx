@@ -1,12 +1,17 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { logoutAction } from '@/app/(auth)/actions';
+import { LangMenu } from '@/components/lang-menu';
+import { getDict, getLocale } from '@/lib/i18n/server';
 
 export async function SiteNav() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  const locale = await getLocale();
+  const t = (await getDict()).nav;
 
   return (
     <header className="border-border bg-background/85 sticky top-0 z-40 border-b backdrop-blur">
@@ -20,9 +25,9 @@ export async function SiteNav() {
         </Link>
 
         <nav className="flex items-center gap-1 text-[12px]">
-          <NavLink href="/browse" label="Browse" />
-          {user ? <NavLink href="/listings" label="Your works" /> : null}
-          {user ? <NavLink href="/listings/new" label="New listing" /> : null}
+          <NavLink href="/browse" label={t.browse} />
+          {user ? <NavLink href="/listings" label={t.yourWorks} /> : null}
+          {user ? <NavLink href="/listings/new" label={t.newListing} /> : null}
         </nav>
 
         <div className="flex items-center gap-3 text-[12px]">
@@ -39,7 +44,7 @@ export async function SiteNav() {
                   type="submit"
                   className="text-muted-foreground hover:text-foreground tracking-label uppercase transition-colors"
                 >
-                  Sign out
+                  {t.signOut}
                 </button>
               </form>
             </>
@@ -49,16 +54,17 @@ export async function SiteNav() {
                 href="/login"
                 className="text-muted-foreground hover:text-foreground tracking-label uppercase transition-colors"
               >
-                Sign in
+                {t.signIn}
               </Link>
               <Link
                 href="/signup"
-                className="tracking-label hover:bg-foreground/85 bg-foreground text-background inline-flex h-7 items-center px-3 uppercase transition-colors"
+                className="tracking-label bg-foreground hover:bg-foreground/85 text-background inline-flex h-7 items-center px-3 uppercase transition-colors"
               >
-                Sign up
+                {t.signUp}
               </Link>
             </>
           )}
+          <LangMenu current={locale} />
         </div>
       </div>
     </header>
