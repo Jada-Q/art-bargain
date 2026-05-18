@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUploadField } from '@/components/image-upload-field';
+import type en from '@/lib/i18n/dict/en';
 import {
   artworkFormSchema,
   AGENT_STYLES,
@@ -18,6 +19,8 @@ import {
   type ArtworkFormInput,
 } from '@/lib/schemas/artwork';
 
+type FormDict = (typeof en)['listing_form'];
+
 const SELECT_CLASS =
   'h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
 
@@ -26,9 +29,11 @@ type SubmitResult = { ok: true; preview: ArtworkFormInput } | { ok: false; error
 export function ListingForm({
   action,
   userId,
+  t,
 }: {
   action: (data: ArtworkFormInput) => Promise<SubmitResult>;
   userId: string;
+  t: FormDict;
 }) {
   const {
     register,
@@ -72,7 +77,7 @@ export function ListingForm({
 
   const onSubmit = handleSubmit((data) => {
     if (!crossFieldOk(data)) {
-      setResult({ ok: false, error: 'Floor price must be ≤ start price' });
+      setResult({ ok: false, error: t.error_floor_above_start });
       return;
     }
     startTransition(async () => {
@@ -86,7 +91,7 @@ export function ListingForm({
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       {/* Image upload */}
       <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-semibold">Image</h2>
+        <h2 className="text-lg font-semibold">{t.section_image}</h2>
         <ImageUploadField
           userId={userId}
           onUploaded={({ image_url, thumb_url }) => {
@@ -100,7 +105,7 @@ export function ListingForm({
 
       {/* Title + description */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold">Listing</h2>
+        <h2 className="text-lg font-semibold">{t.section_listing}</h2>
 
         <Field label="Title" error={errors.title?.message}>
           <Input {...register('title')} placeholder="e.g. Tokyo Skyline at Dusk" />
@@ -121,7 +126,7 @@ export function ListingForm({
 
       {/* Category-specific meta */}
       <section className="flex flex-col gap-4 rounded-lg border p-4">
-        <h3 className="text-sm font-medium">Category details</h3>
+        <h3 className="text-sm font-medium">{t.section_category_details}</h3>
 
         {category === 'poster' && (
           <>
@@ -282,7 +287,7 @@ export function ListingForm({
 
       {/* Pricing */}
       <section className="flex flex-col gap-4">
-        <h3 className="text-sm font-medium">Pricing (USD)</h3>
+        <h3 className="text-sm font-medium">{t.section_pricing}</h3>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Start price" error={errors.price_start?.message}>
             <Input
@@ -305,7 +310,7 @@ export function ListingForm({
 
       {/* Seller agent config */}
       <section className="flex flex-col gap-4 rounded-lg border p-4">
-        <h3 className="text-sm font-medium">Seller agent</h3>
+        <h3 className="text-sm font-medium">{t.section_seller_agent}</h3>
         <Field label="Negotiation style" error={errors.seller_agent?.style?.message}>
           <select className={SELECT_CLASS} {...register('seller_agent.style')}>
             {AGENT_STYLES.map((s) => (
@@ -337,13 +342,9 @@ export function ListingForm({
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isPending || !isValid}>
-          {isPending ? 'Submitting…' : 'Save listing'}
+          {isPending ? t.submitting : t.save}
         </Button>
-        {result?.ok === true && (
-          <span className="text-sm text-emerald-600">
-            Saved as draft. Open My listings to publish.
-          </span>
-        )}
+        {result?.ok === true && <span className="text-sm text-emerald-600">{t.saved_message}</span>}
         {result?.ok === false && <span className="text-destructive text-sm">{result.error}</span>}
       </div>
     </form>

@@ -2,18 +2,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import type en from '@/lib/i18n/dict/en';
 import type { TurnSnapshot } from './negotiation-chat';
+
+type SpectatorDict = (typeof en)['spectator'];
 
 export function SpectatorView({
   negotiationId,
   initialTurns,
   initialStatus,
   priceStart,
+  t,
 }: {
   negotiationId: string;
   initialTurns: TurnSnapshot[];
   initialStatus: 'active' | 'accepted' | 'rejected' | 'stalled' | 'expired';
   priceStart: number;
+  t: SpectatorDict;
 }) {
   const [turns, setTurns] = useState<TurnSnapshot[]>(initialTurns);
   const [sellerDraft, setSellerDraft] = useState('');
@@ -123,18 +128,12 @@ export function SpectatorView({
     <div className="flex flex-col gap-4">
       <header className="border-border flex items-baseline justify-between border-b pb-3">
         <div>
-          <p className="text-muted-foreground tracking-label text-[10px] uppercase">
-            Spectator · agent vs agent
-          </p>
-          <h2 className="font-display mt-1 text-xl">Two agents, one offer</h2>
+          <p className="text-muted-foreground tracking-label text-[10px] uppercase">{t.eyebrow}</p>
+          <h2 className="font-display mt-1 text-xl">{t.title}</h2>
         </div>
         <div className="text-muted-foreground tracking-label flex items-baseline gap-3 text-[10px] uppercase">
           <span className={status === 'active' ? 'text-foreground' : ''}>{status}</span>
-          {turns.length > 0 ? (
-            <span>
-              · {turns.length} turn{turns.length !== 1 ? 's' : ''}
-            </span>
-          ) : null}
+          {turns.length > 0 ? <span>{t.turn_count(turns.length)}</span> : null}
         </div>
       </header>
 
@@ -144,12 +143,14 @@ export function SpectatorView({
         buyerOffer={latestBuyerOffer}
         sellerOffer={latestSellerOffer}
         spread={spread}
+        spreadLabel={t.spread}
+        gapLabel={t.gap}
       />
 
       {/* Two-column streams */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <Column
-          title="Seller agent"
+          title={t.seller_column}
           tone="seller"
           turns={sellerTurns}
           draft={sellerDraft}
@@ -157,7 +158,7 @@ export function SpectatorView({
           scrollRef={sellerRef}
         />
         <Column
-          title="Buyer agent"
+          title={t.buyer_column}
           tone="buyer"
           turns={buyerTurns}
           draft={buyerDraft}
@@ -168,8 +169,7 @@ export function SpectatorView({
 
       {mediationPrice !== null ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
-          System mediation: offers converged within 2%. Accepted at{' '}
-          <strong>${mediationPrice}</strong>.
+          {t.mediation(mediationPrice)}
         </div>
       ) : null}
 
@@ -181,19 +181,23 @@ export function SpectatorView({
 
       {status === 'active' ? (
         <Button onClick={start} disabled={running} size="lg">
-          {running ? 'Running…' : turns.length === 0 ? '▶ Start agent-vs-agent' : '▶ Continue'}
+          {running ? t.running : turns.length === 0 ? t.start : t.continue}
         </Button>
       ) : (
         <div className="border-gallery-accent bg-gallery-accent/5 text-foreground border-l-2 p-4 text-[13px] leading-relaxed">
           <p className="text-gallery-accent tracking-label text-[10px] uppercase">
-            {status === 'accepted' ? 'Accepted' : status === 'stalled' ? 'Stalled' : status}
+            {status === 'accepted'
+              ? t.accepted_eyebrow
+              : status === 'stalled'
+                ? t.stalled_eyebrow
+                : status}
           </p>
           <p className="mt-2">
             {status === 'accepted'
-              ? 'Negotiation closed. Order pending payment.'
+              ? t.accepted_body
               : status === 'stalled'
-                ? 'Reached the 20-turn limit without agreement.'
-                : `Negotiation ${status}.`}
+                ? t.stalled_body
+                : status}
           </p>
         </div>
       )}
@@ -272,11 +276,15 @@ function ProgressBar({
   buyerOffer,
   sellerOffer,
   spread,
+  spreadLabel,
+  gapLabel,
 }: {
   priceStart: number;
   buyerOffer: number | null;
   sellerOffer: number | null;
   spread: number | null;
+  spreadLabel: string;
+  gapLabel: (n: number) => string;
 }) {
   // Domain: 0 → priceStart × 1.2 (small headroom so price_start sits ~83% in)
   const max = Math.max(priceStart * 1.2, sellerOffer ?? 0, buyerOffer ?? 0);
@@ -285,8 +293,8 @@ function ProgressBar({
   return (
     <div className="border-border border p-5">
       <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs">
-        <span>Spread visualization</span>
-        {spread !== null ? <span>gap: ${spread}</span> : <span>—</span>}
+        <span>{spreadLabel}</span>
+        {spread !== null ? <span>{gapLabel(spread)}</span> : <span>—</span>}
       </div>
       <div className="bg-muted relative h-3 w-full rounded-full">
         {/* Listed price marker */}

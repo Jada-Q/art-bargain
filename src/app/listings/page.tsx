@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@/lib/supabase/server';
+import { getDict } from '@/lib/i18n/server';
 import { publishListing, withdrawListing } from './actions';
 
 export default async function MyListingsPage() {
@@ -11,6 +12,8 @@ export default async function MyListingsPage() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
+
+  const t = (await getDict()).listings;
 
   const { data: rows, error } = await supabase
     .from('artworks')
@@ -21,9 +24,9 @@ export default async function MyListingsPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">My listings</h1>
+        <h1 className="font-display text-3xl">{t.title}</h1>
         <Link href="/listings/new" className={buttonVariants()}>
-          New listing
+          {t.new_listing}
         </Link>
       </header>
 
@@ -35,25 +38,28 @@ export default async function MyListingsPage() {
 
       {!rows || rows.length === 0 ? (
         <p className="text-muted-foreground mt-8 text-sm">
-          No listings yet.{' '}
+          {t.no_listings}{' '}
           <Link href="/listings/new" className="underline">
-            Create one
+            {t.create_one}
           </Link>
           .
         </p>
       ) : (
         <ul className="mt-8 flex flex-col gap-3">
           {rows.map((row) => (
-            <li key={row.id} className="flex items-center gap-4 rounded-lg border p-3">
+            <li key={row.id} className="border-border flex items-center gap-4 border p-3">
               {row.thumb_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.thumb_url} alt="" className="h-16 w-16 rounded object-cover" />
+                <img src={row.thumb_url} alt="" className="h-16 w-16 object-cover" />
               ) : (
-                <div className="bg-muted h-16 w-16 rounded" />
+                <div className="bg-muted h-16 w-16" />
               )}
               <div className="flex-1">
-                <Link href={`/artwork/${row.id}`} className="font-medium hover:underline">
-                  {row.title || '(untitled)'}
+                <Link
+                  href={`/artwork/${row.id}`}
+                  className="font-display text-base hover:underline"
+                >
+                  {row.title || t.untitled}
                 </Link>
                 <p className="text-muted-foreground mt-1 text-xs">
                   {row.category} · ${Number(row.price_start).toFixed(0)} ·{' '}
@@ -64,13 +70,13 @@ export default async function MyListingsPage() {
                 {row.status === 'live' ? (
                   <form action={withdrawListing.bind(null, row.id)}>
                     <Button size="sm" variant="outline" type="submit">
-                      Withdraw
+                      {t.withdraw}
                     </Button>
                   </form>
                 ) : row.status === 'draft' || row.status === 'withdrawn' ? (
                   <form action={publishListing.bind(null, row.id)}>
                     <Button size="sm" type="submit">
-                      {row.status === 'withdrawn' ? 'Re-publish' : 'Publish'}
+                      {row.status === 'withdrawn' ? t.republish : t.publish}
                     </Button>
                   </form>
                 ) : null}

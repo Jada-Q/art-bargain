@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import type en from '@/lib/i18n/dict/en';
 import { acceptOffer } from '@/app/nego/actions';
 
 export type TurnSnapshot = {
@@ -13,14 +14,18 @@ export type TurnSnapshot = {
   offer_price: number | null;
 };
 
+type ChatDict = (typeof en)['chat'];
+
 export function NegotiationChat({
   negotiationId,
   initialTurns,
   initialStatus,
+  t,
 }: {
   negotiationId: string;
   initialTurns: TurnSnapshot[];
   initialStatus: 'active' | 'accepted' | 'rejected' | 'stalled' | 'expired';
+  t: ChatDict;
 }) {
   const [turns, setTurns] = useState<TurnSnapshot[]>(initialTurns);
   const [draft, setDraft] = useState('');
@@ -135,9 +140,7 @@ export function NegotiationChat({
         aria-live="polite"
       >
         {turns.length === 0 && !streamingSellerText ? (
-          <p className="text-muted-foreground text-[13px] leading-relaxed italic">
-            Open the floor. Try “Can you do $150?” or ask about the print run.
-          </p>
+          <p className="text-muted-foreground text-[13px] leading-relaxed italic">{t.empty}</p>
         ) : null}
         <ul className="flex flex-col gap-2">
           {turns.map((t) => (
@@ -166,8 +169,10 @@ export function NegotiationChat({
 
       {status === 'accepted' ? (
         <div className="border-gallery-accent bg-gallery-accent/5 text-foreground border-l-2 p-4 text-[13px] leading-relaxed">
-          <p className="text-gallery-accent tracking-label text-[10px] uppercase">Accepted</p>
-          <p className="mt-2">Negotiation closed. Order pending payment.</p>
+          <p className="text-gallery-accent tracking-label text-[10px] uppercase">
+            {t.accepted_eyebrow}
+          </p>
+          <p className="mt-2">{t.accepted_body}</p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -179,14 +184,14 @@ export function NegotiationChat({
               disabled={acceptPending}
               className="self-end"
             >
-              {acceptPending ? 'Accepting…' : `Accept offer $${lastSellerOffer.offer_price}`}
+              {acceptPending ? t.accepting : t.accept_offer(lastSellerOffer.offer_price as number)}
             </Button>
           ) : null}
           <div className="flex gap-2">
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Counter-offer or ask…"
+              placeholder={t.placeholder}
               rows={2}
               disabled={streaming || status !== 'active'}
               onKeyDown={(e) => {
@@ -197,7 +202,7 @@ export function NegotiationChat({
               }}
             />
             <Button onClick={send} disabled={streaming || !draft.trim() || status !== 'active'}>
-              {streaming ? 'Sending…' : 'Send'}
+              {streaming ? t.sending : t.send}
             </Button>
           </div>
         </div>

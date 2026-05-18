@@ -12,14 +12,19 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import type en from '@/lib/i18n/dict/en';
 import { startNegotiation } from '@/app/nego/actions';
+
+type DispatchDict = (typeof en)['dispatch'];
 
 export function DispatchModal({
   artworkId,
   priceStart,
+  t,
 }: {
   artworkId: string;
   priceStart: number;
+  t: DispatchDict;
 }) {
   const [mode, setMode] = useState<'human_vs_agent' | 'agent_vs_agent'>('human_vs_agent');
   const minFirstOffer = Math.ceil(priceStart * 0.7);
@@ -33,16 +38,14 @@ export function DispatchModal({
             data-test-id="start-nego"
             className="bg-foreground text-background hover:bg-foreground/85 inline-flex h-9 w-full items-center justify-center rounded-md px-3 text-sm font-medium"
           >
-            Start negotiation
+            {t.start_button}
           </button>
         )}
       />
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Choose negotiation mode</DialogTitle>
-          <DialogDescription>
-            Listed at ${priceStart}. Your opening must be ≥ ${minFirstOffer}.
-          </DialogDescription>
+          <DialogTitle>{t.title}</DialogTitle>
+          <DialogDescription>{t.description(priceStart, minFirstOffer)}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-2 grid grid-cols-2 gap-2">
@@ -54,10 +57,8 @@ export function DispatchModal({
               (mode === 'human_vs_agent' ? 'border-foreground bg-muted' : 'hover:bg-muted/50')
             }
           >
-            <div className="font-medium">Negotiate myself</div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              You type each turn. Chat with the seller&apos;s agent.
-            </p>
+            <div className="font-medium">{t.mode_self}</div>
+            <p className="text-muted-foreground mt-1 text-xs">{t.mode_self_body}</p>
           </button>
           <button
             type="button"
@@ -67,10 +68,8 @@ export function DispatchModal({
               (mode === 'agent_vs_agent' ? 'border-foreground bg-muted' : 'hover:bg-muted/50')
             }
           >
-            <div className="font-medium">Dispatch an agent</div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Set target / max / style. Watch both agents negotiate.
-            </p>
+            <div className="font-medium">{t.mode_agent}</div>
+            <p className="text-muted-foreground mt-1 text-xs">{t.mode_agent_body}</p>
           </button>
         </div>
 
@@ -83,7 +82,7 @@ export function DispatchModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="target_price" className="text-xs">
-                    Target price
+                    {t.target_price}
                   </Label>
                   <Input
                     id="target_price"
@@ -96,7 +95,7 @@ export function DispatchModal({
                 </div>
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="max_price" className="text-xs">
-                    Max ceiling
+                    {t.max_ceiling}
                   </Label>
                   <Input
                     id="max_price"
@@ -111,7 +110,7 @@ export function DispatchModal({
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="style" className="text-xs">
-                    Style
+                    {t.style}
                   </Label>
                   <select
                     id="style"
@@ -126,7 +125,7 @@ export function DispatchModal({
                 </div>
                 <div className="flex flex-col gap-1">
                   <Label htmlFor="urgency" className="text-xs">
-                    Urgency (1-5)
+                    {t.urgency}
                   </Label>
                   <Input
                     id="urgency"
@@ -139,14 +138,12 @@ export function DispatchModal({
                   />
                 </div>
               </div>
-              <p className="text-muted-foreground text-xs">
-                Buyer agent opens at ≥ ${minFirstOffer}. Anti-cheese: lowballing rejected.
-              </p>
+              <p className="text-muted-foreground text-xs">{t.hint(minFirstOffer)}</p>
             </div>
           ) : null}
 
           <Button type="submit" size="lg">
-            {mode === 'agent_vs_agent' ? '▶ Dispatch agent' : 'Open chat'}
+            {mode === 'agent_vs_agent' ? t.submit_agent : t.submit_self}
           </Button>
         </form>
       </DialogContent>
