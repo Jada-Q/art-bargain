@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUploadField } from '@/components/image-upload-field';
-import type en from '@/lib/i18n/dict/en';
+import type { Locale } from '@/lib/i18n';
+import { dictFor } from '@/lib/i18n/client';
 import {
   artworkFormSchema,
   AGENT_STYLES,
@@ -18,8 +19,6 @@ import {
   crossFieldOk,
   type ArtworkFormInput,
 } from '@/lib/schemas/artwork';
-
-type FormDict = (typeof en)['listing_form'];
 
 const SELECT_CLASS =
   'h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50';
@@ -33,8 +32,9 @@ export function ListingForm({
 }: {
   action: (data: ArtworkFormInput) => Promise<SubmitResult>;
   userId: string;
-  t: FormDict;
+  locale: Locale;
 }) {
+  const t = dictFor(locale).listing_form;
   const {
     register,
     handleSubmit,
