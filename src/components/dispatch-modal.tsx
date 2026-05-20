@@ -12,20 +12,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type en from '@/lib/i18n/dict/en';
+import type { Locale } from '@/lib/i18n';
+import { dictFor } from '@/lib/i18n/client';
 import { startNegotiation } from '@/app/nego/actions';
-
-type DispatchDict = (typeof en)['dispatch'];
 
 export function DispatchModal({
   artworkId,
   priceStart,
-  t,
+  locale,
 }: {
   artworkId: string;
   priceStart: number;
-  t: DispatchDict;
+  locale: Locale;
 }) {
+  const t = dictFor(locale).dispatch;
   const [mode, setMode] = useState<'human_vs_agent' | 'agent_vs_agent'>('human_vs_agent');
   const minFirstOffer = Math.ceil(priceStart * 0.7);
 
@@ -81,61 +81,29 @@ export function DispatchModal({
             <div className="flex flex-col gap-3 rounded-md border p-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="target_price" className="text-xs">
-                    {t.target_price}
-                  </Label>
-                  <Input
-                    id="target_price"
-                    name="target_price"
-                    type="number"
-                    min={1}
-                    defaultValue={Math.round(priceStart * 0.75)}
-                    required
-                  />
+                  <Label htmlFor="target_price" className="text-xs">{t.target_price}</Label>
+                  <Input id="target_price" name="target_price" type="number" min={1}
+                    defaultValue={Math.round(priceStart * 0.75)} required />
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="max_price" className="text-xs">
-                    {t.max_ceiling}
-                  </Label>
-                  <Input
-                    id="max_price"
-                    name="max_price"
-                    type="number"
-                    min={1}
-                    defaultValue={Math.round(priceStart * 0.9)}
-                    required
-                  />
+                  <Label htmlFor="max_price" className="text-xs">{t.max_ceiling}</Label>
+                  <Input id="max_price" name="max_price" type="number" min={1}
+                    defaultValue={Math.round(priceStart * 0.9)} required />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="style" className="text-xs">
-                    {t.style}
-                  </Label>
-                  <select
-                    id="style"
-                    name="style"
-                    className="border-input bg-background h-9 rounded-md border px-3 text-sm"
-                    defaultValue="firm"
-                  >
+                  <Label htmlFor="style" className="text-xs">{t.style}</Label>
+                  <select id="style" name="style" defaultValue="firm"
+                    className="border-input bg-background h-9 rounded-md border px-3 text-sm">
                     <option value="firm">firm</option>
                     <option value="friendly">friendly</option>
                     <option value="scholarly">scholarly</option>
                   </select>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <Label htmlFor="urgency" className="text-xs">
-                    {t.urgency}
-                  </Label>
-                  <Input
-                    id="urgency"
-                    name="urgency"
-                    type="number"
-                    min={1}
-                    max={5}
-                    defaultValue={3}
-                    required
-                  />
+                  <Label htmlFor="urgency" className="text-xs">{t.urgency}</Label>
+                  <Input id="urgency" name="urgency" type="number" min={1} max={5} defaultValue={3} required />
                 </div>
               </div>
               <p className="text-muted-foreground text-xs">{t.hint(minFirstOffer)}</p>
