@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ListingForm } from '@/components/listing-form';
 import { createClient } from '@/lib/supabase/server';
-import { getDict } from '@/lib/i18n/server';
+import { getDict, getLocale } from '@/lib/i18n/server';
 import { createListing } from '../actions';
 
 export default async function NewListingPage() {
@@ -12,9 +12,9 @@ export default async function NewListingPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  const locale = await getLocale();
   const dict = await getDict();
   const t = dict.listing_new;
-  const fdict = dict.listing_form;
 
   return (
     <main className="mx-auto max-w-xl px-6 py-12">
@@ -28,7 +28,7 @@ export default async function NewListingPage() {
       </p>
 
       <div className="mt-8">
-        <ListingForm action={createListing} userId={user.id} t={fdict} />
+        <ListingForm action={createListing} userId={user.id} locale={locale} />
       </div>
     </main>
   );
