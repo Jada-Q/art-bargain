@@ -7,10 +7,21 @@ import { LOCALES, type Locale } from '@/lib/i18n/index';
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
+function safePath(raw: string | null | undefined): string {
+  if (!raw) return '/';
+  if (!raw.startsWith('/')) return '/';
+  // Reject protocol-relative URLs to avoid open-redirect.
+  if (raw.startsWith('//')) return '/';
+  return raw;
+}
+
 export async function setLocaleAction(formData: FormData) {
   const value = String(formData.get('locale') ?? '');
+  const nextField = formData.get('next');
+  const next = safePath(typeof nextField === 'string' ? nextField : null);
+
   if (!(LOCALES as readonly string[]).includes(value)) {
-    redirect('/');
+    redirect(next);
   }
 
   const c = await cookies();
@@ -20,18 +31,20 @@ export async function setLocaleAction(formData: FormData) {
     sameSite: 'lax',
   });
 
-  // Bust the RSC cache for every segment that reads getDict().
   revalidatePath('/', 'layout');
 
-  // Force a fresh navigation to the page the user clicked from — without
-  // this, Next.js 16 may keep the prior RSC payload for the current view
-  // even though the cookie has been updated.
+  // Prefer the explicit `next` field from the form (set client-side from
+  // window.location). Fall back to the Referer header if the field is missing
+  // (older cached client bundle).
+  if (next !== '/') {
+    redirect(next);
+  }
   const h = await headers();
   const referer = h.get('referer');
   if (referer) {
     try {
       const url = new URL(referer);
-      redirect(url.pathname + url.search);
+      redirect(safePath(url.pathname + url.search));
     } catch {
       // Malformed referer — fall through to root.
     }
