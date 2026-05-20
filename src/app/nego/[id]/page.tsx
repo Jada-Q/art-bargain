@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { NegotiationChat, type TurnSnapshot } from '@/components/negotiation-chat';
 import { SpectatorView } from '@/components/spectator-view';
 import { createClient } from '@/lib/supabase/server';
-import { getDict } from '@/lib/i18n/server';
+import { getDict, getLocale } from '@/lib/i18n/server';
 
 type Params = Promise<{ id: string }>;
 
@@ -45,6 +45,7 @@ export default async function NegotiationPage({ params }: { params: Params }) {
     offer_price: t.offer_price === null ? null : Number(t.offer_price),
   }));
 
+  const locale = await getLocale();
   const dict = await getDict();
   const tSpec = dict.spectator;
 
@@ -87,14 +88,14 @@ export default async function NegotiationPage({ params }: { params: Params }) {
               initialTurns={turns}
               initialStatus={nego.status}
               priceStart={Number(artwork.price_start)}
-              t={tSpec}
+              locale={locale}
             />
           ) : (
             <NegotiationChat
               negotiationId={id}
               initialTurns={turns}
               initialStatus={nego.status}
-              t={dict.chat}
+              locale={locale}
             />
           )}
         </section>
