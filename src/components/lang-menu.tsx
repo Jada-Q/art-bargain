@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { setLocaleAction } from '@/app/i18n-action';
 import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n';
 
 export function LangMenu({ current }: { current: Locale }) {
@@ -10,8 +9,7 @@ export function LangMenu({ current }: { current: Locale }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Capture current path so the server action knows where to redirect back to.
-    // Referer header alone isn't reliable across browsers / strict referrer policies.
+    // Capture current URL so the server redirects back here after setting cookie.
     setPathname(window.location.pathname + window.location.search);
   }, []);
 
@@ -54,7 +52,7 @@ export function LangMenu({ current }: { current: Locale }) {
           className="border-border bg-background absolute top-full right-0 z-50 mt-2 min-w-[88px] border py-1"
         >
           {LOCALES.map((loc) => (
-            <form key={loc} action={setLocaleAction}>
+            <form key={loc} method="POST" action="/api/locale">
               <input type="hidden" name="locale" value={loc} />
               <input type="hidden" name="next" value={pathname} />
               <button
