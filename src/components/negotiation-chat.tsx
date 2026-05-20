@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type en from '@/lib/i18n/dict/en';
+import type { Locale } from '@/lib/i18n';
+import { dictFor } from '@/lib/i18n/client';
 import { acceptOffer } from '@/app/nego/actions';
 
 export type TurnSnapshot = {
@@ -14,8 +15,6 @@ export type TurnSnapshot = {
   offer_price: number | null;
 };
 
-type ChatDict = (typeof en)['chat'];
-
 export function NegotiationChat({
   negotiationId,
   initialTurns,
@@ -25,8 +24,9 @@ export function NegotiationChat({
   negotiationId: string;
   initialTurns: TurnSnapshot[];
   initialStatus: 'active' | 'accepted' | 'rejected' | 'stalled' | 'expired';
-  t: ChatDict;
+  locale: Locale;
 }) {
+  const t = dictFor(locale).chat;
   const [turns, setTurns] = useState<TurnSnapshot[]>(initialTurns);
   const [draft, setDraft] = useState('');
   const [streaming, setStreaming] = useState(false);
