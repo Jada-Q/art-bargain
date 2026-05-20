@@ -9,7 +9,6 @@ export function LangMenu({ current }: { current: Locale }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Capture current URL so the server redirects back here after setting cookie.
     setPathname(window.location.pathname + window.location.search);
   }, []);
 
@@ -55,10 +54,13 @@ export function LangMenu({ current }: { current: Locale }) {
             <form key={loc} method="POST" action="/api/locale">
               <input type="hidden" name="locale" value={loc} />
               <input type="hidden" name="next" value={pathname} />
+              {/* No onClick handler — form submission causes navigation
+                  which closes the dropdown naturally. Closing the dropdown
+                  here would unmount the form before browser can submit
+                  ('Form submission canceled because the form is not connected'). */}
               <button
                 type="submit"
                 role="menuitem"
-                onClick={() => setOpen(false)}
                 aria-current={current === loc ? 'true' : undefined}
                 className={
                   'hover:bg-muted/60 tracking-label flex w-full items-center gap-2 px-3 py-1 text-left text-[10px] uppercase transition-colors ' +
