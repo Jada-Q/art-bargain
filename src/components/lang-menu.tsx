@@ -6,7 +6,14 @@ import { LOCALES, LOCALE_LABELS, type Locale } from '@/lib/i18n';
 
 export function LangMenu({ current }: { current: Locale }) {
   const [open, setOpen] = useState(false);
+  const [pathname, setPathname] = useState('/');
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Capture current path so the server action knows where to redirect back to.
+    // Referer header alone isn't reliable across browsers / strict referrer policies.
+    setPathname(window.location.pathname + window.location.search);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -49,6 +56,7 @@ export function LangMenu({ current }: { current: Locale }) {
           {LOCALES.map((loc) => (
             <form key={loc} action={setLocaleAction}>
               <input type="hidden" name="locale" value={loc} />
+              <input type="hidden" name="next" value={pathname} />
               <button
                 type="submit"
                 role="menuitem"
