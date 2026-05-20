@@ -2,10 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import type en from '@/lib/i18n/dict/en';
+import type { Locale } from '@/lib/i18n';
+import { dictFor } from '@/lib/i18n/client';
 import type { TurnSnapshot } from './negotiation-chat';
-
-type SpectatorDict = (typeof en)['spectator'];
 
 export function SpectatorView({
   negotiationId,
@@ -18,8 +17,9 @@ export function SpectatorView({
   initialTurns: TurnSnapshot[];
   initialStatus: 'active' | 'accepted' | 'rejected' | 'stalled' | 'expired';
   priceStart: number;
-  t: SpectatorDict;
+  locale: Locale;
 }) {
+  const t = dictFor(locale).spectator;
   const [turns, setTurns] = useState<TurnSnapshot[]>(initialTurns);
   const [sellerDraft, setSellerDraft] = useState('');
   const [buyerDraft, setBuyerDraft] = useState('');
