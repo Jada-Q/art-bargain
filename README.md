@@ -63,7 +63,6 @@ Failure modes the coordinator handles:
 | UI | Tailwind v4 + shadcn (base-ui preset) |
 | Auth + DB + Storage | Supabase (Postgres 17, RLS-strict) |
 | LLM | Anthropic `claude-sonnet-4-6` (streaming + tools) |
-| Payments | Stripe test mode (checkout happy path) |
 | Tests | Vitest + MSW (Anthropic mocked at HTTP boundary) |
 | Deploy | Vercel |
 | i18n | Cookie + Route Handler + per-locale dict |
@@ -87,7 +86,6 @@ Failure modes the coordinator handles:
 - pnpm 10+
 - Supabase project (free tier)
 - Anthropic API key
-- Stripe test-mode keys
 
 ### Setup
 
