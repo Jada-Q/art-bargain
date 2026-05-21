@@ -28,7 +28,7 @@ type SubmitResult = { ok: true; preview: ArtworkFormInput } | { ok: false; error
 export function ListingForm({
   action,
   userId,
-  t,
+  locale,
 }: {
   action: (data: ArtworkFormInput) => Promise<SubmitResult>;
   userId: string;

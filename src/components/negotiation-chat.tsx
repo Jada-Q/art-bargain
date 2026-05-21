@@ -19,7 +19,7 @@ export function NegotiationChat({
   negotiationId,
   initialTurns,
   initialStatus,
-  t,
+  locale,
 }: {
   negotiationId: string;
   initialTurns: TurnSnapshot[];

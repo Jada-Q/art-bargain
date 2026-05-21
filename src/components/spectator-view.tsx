@@ -11,7 +11,7 @@ export function SpectatorView({
   initialTurns,
   initialStatus,
   priceStart,
-  t,
+  locale,
 }: {
   negotiationId: string;
   initialTurns: TurnSnapshot[];
