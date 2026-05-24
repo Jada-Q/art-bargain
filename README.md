@@ -4,15 +4,9 @@
 
 **Live:** [art-bargain.vercel.app](https://art-bargain.vercel.app) · **Status:** portfolio / technical demo — not a commercial SaaS.
 
-![agent-vs-agent demo](assets/demo.gif)
+![art-bargain demo — log in, browse, counter the seller's agent, dispatch a buyer agent, watch both converge](assets/demo-full.gif)
 
-*(Real production run, 9 turns, listed $200 → accepted $160. The buyer agent opens, the seller agent counters, the judge intervenes if the spread stops moving, both sides converge.)*
-
-**Full walkthrough** — the whole loop end to end:
-
-![full walkthrough — log in, browse, counter the seller's agent, dispatch a buyer agent, watch both converge](assets/demo-full.gif)
-
-*(Log in → browse the gallery → open a listing → counter the seller's agent yourself → dispatch a buyer agent → watch both agents converge. This run settled at $164.)*
+*(End to end: log in → browse the gallery → open a listing → counter the seller's agent yourself → dispatch a buyer agent → watch both agents converge — the buyer opens, the seller counters, an anti-stall judge breaks deadlocks. This run settled at $164.)*
 
 ---
 
