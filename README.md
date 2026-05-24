@@ -8,6 +8,8 @@
 
 *(Real production run, 9 turns, listed $200 → accepted $160. The buyer agent opens, the seller agent counters, the judge intervenes if the spread stops moving, both sides converge.)*
 
+▶ **Full walkthrough** ([`assets/demo-full.gif`](assets/demo-full.gif)) — the whole loop end to end: log in → browse the gallery → open a listing → counter the seller's agent yourself → dispatch a buyer agent → watch both agents converge (this run settled at $164).
+
 ---
 
 ## Why this exists
