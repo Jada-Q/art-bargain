@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { runSellerTurnStream } from '@/lib/agent/coordinator';
 import { supabaseComparableSalesSource } from '@/lib/agent/supabase-source';
 import { validateBuyerOffer } from '@/lib/agent/price-validation';
+import { pickOfferNumber } from '@/lib/agent/offer-extract';
 import type { SellerPromptInput } from '@/lib/agent/prompt-builder';
 
 type Params = Promise<{ id: string }>;
@@ -193,13 +194,10 @@ export async function POST(request: NextRequest, ctx: { params: Params }) {
   });
 }
 
-// Reuse the same regex used by response-parser.ts; duplicated here to keep this
-// module standalone (and to avoid pulling the parser into the route bundle).
-const NUMBER_RE = /-?\d+(?:\.\d+)?/g;
+// Lenient for human input: out-of-range figures (negative / absurd) are treated
+// as "no offer" so a typo doesn't 400 the turn — the agent just replies in kind.
 function extractOfferPrice(text: string): number | null {
-  const matches = Array.from(text.matchAll(NUMBER_RE)).map((m) => Number(m[0]));
-  if (matches.length === 0) return null;
-  const last = matches[matches.length - 1];
-  if (last < 0 || last > 1_000_000) return null;
-  return last;
+  const n = pickOfferNumber(text);
+  if (n === null || n < 0 || n > 1_000_000) return null;
+  return n;
 }

@@ -1,4 +1,5 @@
 import type Anthropic from '@anthropic-ai/sdk';
+import { pickOfferNumber } from '@/lib/agent/offer-extract';
 
 type Message = Anthropic.Messages.Message;
 
@@ -16,11 +17,6 @@ export type ParsedTurn = {
 
 const MAX_OFFER = 1_000_000;
 
-// Match any decimal number, optionally preceded by a minus sign.
-// Defensive: an agent should never produce negatives, but we surface the
-// invalid value loudly rather than silently accept it.
-const NUMBER_RE = /-?\d+(?:\.\d+)?/g;
-
 function extractText(message: Message): string {
   return message.content
     .filter((b): b is Extract<Message['content'][number], { type: 'text' }> => b.type === 'text')
@@ -36,10 +32,11 @@ function extractToolCalls(message: Message): ParsedToolCall[] {
     .map((b) => ({ name: b.name, input: b.input }));
 }
 
+// Defensive: an agent should never produce negatives or absurd figures, but we
+// surface the invalid value loudly rather than silently accept it.
 function extractOfferPrice(text: string): number | null {
-  const matches = Array.from(text.matchAll(NUMBER_RE)).map((m) => Number(m[0]));
-  if (matches.length === 0) return null;
-  const last = matches[matches.length - 1];
+  const last = pickOfferNumber(text);
+  if (last === null) return null;
   if (last < 0) {
     throw new Error(`offer_price negative or invalid: ${last}`);
   }
