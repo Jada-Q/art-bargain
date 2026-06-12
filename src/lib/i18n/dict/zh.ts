@@ -75,6 +75,13 @@ const zh: typeof en = {
     meta_edition: '版数',
     meta_edition_open: '开放版',
     meta_yes: '有',
+    comps_title: '可比成交',
+    comps_subtitle: '议价 agent 报价前参考的同一批证据',
+    comps_empty: '该品类暂无可比成交记录。',
+    comps_range: '近期区间',
+    comps_median: '中位价',
+    comps_sold: '成交',
+    comps_count: (n: number) => `共 ${n} 条`,
   },
   dispatch: {
     title: '选择议价方式',

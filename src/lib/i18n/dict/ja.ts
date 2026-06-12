@@ -82,6 +82,13 @@ const ja: typeof en = {
     meta_edition: 'エディション',
     meta_edition_open: 'オープン',
     meta_yes: 'あり',
+    comps_title: '類似落札',
+    comps_subtitle: 'エージェントが提示前に参照するのと同じ根拠',
+    comps_empty: 'このカテゴリの類似落札データはまだありません。',
+    comps_range: '直近のレンジ',
+    comps_median: '中央値',
+    comps_sold: '落札',
+    comps_count: (n: number) => `${n} 件`,
   },
   dispatch: {
     title: '交渉モードを選ぶ',

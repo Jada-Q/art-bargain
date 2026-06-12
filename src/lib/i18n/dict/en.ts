@@ -80,6 +80,13 @@ const en = {
     meta_edition: 'Edition',
     meta_edition_open: 'Open',
     meta_yes: 'Yes',
+    comps_title: 'Comparable sales',
+    comps_subtitle: 'The same evidence our agents reference before they quote',
+    comps_empty: 'No comparable sales on record yet for this category.',
+    comps_range: 'Recent range',
+    comps_median: 'Median',
+    comps_sold: 'sold',
+    comps_count: (n: number) => `${n} on record`,
   },
   dispatch: {
     title: 'Choose negotiation mode',
