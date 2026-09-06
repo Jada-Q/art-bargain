@@ -31,7 +31,8 @@ export function pickOfferNumber(text: string): number | null {
   const cleaned = text
     .replace(/\/\s?\d+/g, ' ') // edition denominators: /75, /100
     .replace(/\d+\s?[x×]\s?\d+/gi, ' ') // dimensions: 50x75, 24 × 32
-    .replace(/\bA\d+\b/gi, ' '); // paper sizes: A2, A3
+    .replace(/\bA\d+\b/gi, ' ') // paper sizes: A2, A3
+    .replace(/\d+(?:\.\d+)?\s?%/g, ' '); // discount talk: 15% off, come down 10%
 
   const bare = Array.from(cleaned.matchAll(BARE_NUMBER_RE)).map((m) => Number(m[0]));
   if (bare.length === 0) return null;
