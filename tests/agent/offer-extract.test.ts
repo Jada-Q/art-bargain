@@ -54,6 +54,16 @@ describe('pickOfferNumber', () => {
     expect(pickOfferNumber('how about 150 dollars')).toBe(150);
   });
 
+  // Percentage tokens are discount talk, not offers — same noise family as
+  // editions/dimensions. Only matters on the no-$ fallback path.
+  test('no $: bare number wins over a trailing percentage', () => {
+    expect(pickOfferNumber("175 works for me, that's 15% off")).toBe(175);
+  });
+
+  test('no $: pure percentage talk yields no offer', () => {
+    expect(pickOfferNumber('I can come down 10%')).toBeNull();
+  });
+
   test('null when no number present', () => {
     expect(pickOfferNumber('no thanks, walking away')).toBeNull();
   });
